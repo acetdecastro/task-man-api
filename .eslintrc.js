@@ -3,6 +3,7 @@ module.exports = {
     browser: true,
     commonjs: true,
     es2021: true,
+    'jest/globals': true,
   },
   extends: [
     'airbnb-base',
@@ -15,4 +16,5 @@ module.exports = {
     'max-len': ['error', { code: 120 }],
     'no-underscore-dangle': 0,
   },
+  plugins: ['jest'],
 };
