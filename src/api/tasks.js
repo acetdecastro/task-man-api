@@ -31,6 +31,7 @@ router.get('/', auth, async (req, res, next) => {
         sort,
       },
     }).execPopulate();
+
     res.json(req.user.tasks);
   } catch (error) {
     next(error);

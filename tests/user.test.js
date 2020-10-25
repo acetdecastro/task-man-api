@@ -1,78 +1,13 @@
 const request = require('supertest');
-const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const app = require('../src/app');
 const User = require('../src/models/user');
+const { userOneId, userOne, populateDatabase } = require('./fixtures/db');
 
-const baseURL = '/api/users';
+const baseURL = '/api/v1/users';
 
-const userOneId = new mongoose.Types.ObjectId();
-const userOne = {
-  _id: userOneId,
-  name: 'Sarah',
-  email: 'sara@example.com',
-  password: '56what!!',
-  tokens: [{
-    token: jwt.sign({ _id: userOneId }, process.env.JWT_SECRET),
-  }],
-};
-
-beforeEach(async () => {
-  await User.deleteMany();
-  await new User(userOne).save();
-});
-
-test('Should signup a new user', async () => {
-  const response = await request(app)
-    .post(`${baseURL}/`)
-    .send({
-      name: 'Juan',
-      email: 'juan@example.com',
-      password: 'MyPass777!',
-    })
-    .expect(201);
-
-  // Assert that the database was changed correctly
-  const user = await User.findById(response.body.user._id);
-  expect(user).not.toBeNull();
-
-  // Assertions about the response
-  expect(response.body).toMatchObject({
-    user: {
-      name: 'Juan',
-      email: 'juan@example.com',
-    },
-    token: user.tokens[0].token,
-  });
-
-  expect(user.password).not.toBe('MyPass777!');
-});
-
-test('Should login existing user', async () => {
-  const response = await request(app)
-    .post(`${baseURL}/login`)
-    .send({
-      email: userOne.email,
-      password: userOne.password,
-    })
-    .expect(200);
-
-  // Assert that the created token from logging in matches a token in the database
-  const user = await User.findById(response.body.user._id);
-  expect(response.body.token).toBe(user.tokens[1].token);
-});
-
-test('Should not login non-existent user', async () => {
-  await request(app)
-    .post(`${baseURL}/login`)
-    .send({
-      email: 'nonexistentuser@email.com',
-      password: 'nonexistentuser',
-    })
-    .expect(400);
-});
+beforeEach(populateDatabase);
 
 test('Should get profile for user', async () => {
   await request(app)
